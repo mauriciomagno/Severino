@@ -1,0 +1,30 @@
+/* Reset mínimo + configuração base do documento. Os tokens vivem em
+   src/styles/tokens.css (importado por App.jsx). */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fonte-serif, "EB Garamond", serif);
+  color: var(--cor-texto, #2a1a10);
+  background: var(--cor-sombra, #3d2317);
+}
+
+/* Foco visível em todos os elementos interativos — acessibilidade base. */
+:focus-visible {
+  outline: 3px solid var(--cor-foco, #e8543f);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

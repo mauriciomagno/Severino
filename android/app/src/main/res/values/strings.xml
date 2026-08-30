@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Morte e Vida Severina</string>
+    <string name="title_activity_main">Morte e Vida Severina</string>
+    <string name="package_name">br.com.severino.game</string>
+    <string name="custom_url_scheme">br.com.severino.game</string>
+</resources>

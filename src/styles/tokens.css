@@ -1,0 +1,124 @@
+/*
+ * TOKENS.CSS — Sistema de design de "Morte e Vida Severina"
+ * ============================================================
+ * Duas paletas nomeadas representam os dois extremos da jornada de Severino:
+ * o SERTÃO (partida, seca, ocre) e o LITORAL (chegada, água, azul-verde).
+ *
+ * A variável --world-progress (0..1) representa o quão longe Severino já
+ * percorreu rumo ao litoral. Ela é escrita pelo JS (via
+ * document.documentElement.style.setProperty('--world-progress', t)) a cada
+ * atualização de HUD (~10 Hz, nunca a 60 FPS — ver src/game/publisher.js).
+ *
+ * O CSS usa --world-progress apenas para pequenas transições de UI (bordas,
+ * sombras, tinturas). A interpolação "pesada" das cores usadas no <canvas>
+ * (céu, chão, silhuetas, poeira) é feita em JavaScript puro por
+ * src/game/palette.js::getPalette(progress), pois o Canvas 2D não lê
+ * variáveis CSS diretamente — o JS calcula os valores hexadecimais finais.
+ *
+ * Ou seja:
+ *   - CSS custom properties  -> consumidas pela UI React (HUD, telas, barra)
+ *   - src/game/palette.js    -> consumido pelo GameCanvas (desenho 2D)
+ * As duas fontes derivam das MESMAS cores-base definidas abaixo, para que
+ * nunca fiquem dessincronizadas.
+ */
+
+:root {
+  /* ---------- Paleta SERTÃO (progress = 0) ---------- */
+  --sertao-sky: #e3b778;
+  --sertao-terra-clara: #c77b3a;
+  --sertao-terra-escura: #8c4a2f;
+  --sertao-calcinado: #e8d5a9;
+  --sertao-sombra: #3d2317;
+  --sertao-poeira: #d9a35f;
+
+  /* ---------- Paleta LITORAL (progress = 1) ---------- */
+  --litoral-sky: #9fd3de;
+  --litoral-agua-clara: #4fa3a5;
+  --litoral-agua-escura: #2e6e7e;
+  --litoral-mangue: #a8d5ba;
+  --litoral-sombra: #1b3a4b;
+  --litoral-poeira: #7fb8c4;
+
+  /*
+   * --world-progress é sobrescrita em runtime pelo JS do jogo.
+   * 0 = início no sertão · 1 = chegada ao litoral.
+   * Mantemos um valor estático aqui só para a UI fora do jogo (menu, etc).
+   */
+  --world-progress: 0;
+
+  /* Tokens "correntes" que a UI React usa diretamente — versões CSS puras,
+     interpoladas de forma aproximada via color-mix(), só para elementos de
+     interface (não para o canvas, que usa palette.js com interpolação RGB exata). */
+  --cor-ceu: color-mix(in srgb, var(--sertao-sky), var(--litoral-sky) calc(var(--world-progress) * 100%));
+  --cor-terra-clara: color-mix(in srgb, var(--sertao-terra-clara), var(--litoral-agua-clara) calc(var(--world-progress) * 100%));
+  --cor-terra-escura: color-mix(in srgb, var(--sertao-terra-escura), var(--litoral-agua-escura) calc(var(--world-progress) * 100%));
+  --cor-clara: color-mix(in srgb, var(--sertao-calcinado), var(--litoral-mangue) calc(var(--world-progress) * 100%));
+  --cor-sombra: color-mix(in srgb, var(--sertao-sombra), var(--litoral-sombra) calc(var(--world-progress) * 100%));
+  --cor-poeira: color-mix(in srgb, var(--sertao-poeira), var(--litoral-poeira) calc(var(--world-progress) * 100%));
+
+  /* ---------- Cores fixas de UI/HUD (não pertencem à interpolação de mundo) ---------- */
+  --cor-texto: #2a1a10;
+  --cor-texto-claro: #fdf6e7;
+  --cor-fundo-ui: rgba(253, 246, 231, 0.92);
+  --cor-borda: rgba(61, 35, 23, 0.35);
+  --cor-foco: #e8543f;
+
+  /* Estados da barra de sede/hidratação (StatusBar) */
+  --status-normal: #4fa3a5;
+  --status-atencao: #d9a334;
+  --status-critico: #c1382a;
+
+  /* ---------- Tipografia ---------- */
+  --fonte-serif: "EB Garamond", "Georgia", serif; /* versos, títulos, poesia */
+  --fonte-hud: "Oswald", "Arial Narrow", sans-serif; /* HUD numérico, condensado e seco */
+
+  --tamanho-xs: 0.75rem;
+  --tamanho-sm: 0.9rem;
+  --tamanho-md: 1.1rem;
+  --tamanho-lg: 1.6rem;
+  --tamanho-xl: 2.4rem;
+  --tamanho-titulo: 3.2rem;
+
+  /* ---------- Espaçamento ---------- */
+  --espaco-xs: 0.25rem;
+  --espaco-sm: 0.5rem;
+  --espaco-md: 1rem;
+  --espaco-lg: 1.75rem;
+  --espaco-xl: 3rem;
+
+  /* ---------- Raios ---------- */
+  --raio-sm: 4px;
+  --raio-md: 10px;
+  --raio-lg: 20px;
+  --raio-pill: 999px;
+
+  /* ---------- Duração / easing ---------- */
+  --duracao-rapida: 120ms;
+  --duracao-normal: 260ms;
+  --duracao-lenta: 600ms;
+  --duracao-mundo: 900ms; /* transição de paleta ao cruzar marcos do mundo */
+  --easing-padrao: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-saida: cubic-bezier(0.4, 0, 1, 1);
+  --easing-entrada: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Respeita prefers-reduced-motion: zera durações de transição/animação
+   globalmente. As etapas futuras (loop, física) DEVEM checar este guard
+   antes de aplicar animações puramente decorativas (poeira, tremores, etc).
+   Guard JS equivalente: window.matchMedia('(prefers-reduced-motion: reduce)').matches */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duracao-rapida: 0ms;
+    --duracao-normal: 0ms;
+    --duracao-lenta: 0ms;
+    --duracao-mundo: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

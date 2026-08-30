@@ -1,0 +1,726 @@
+/* Estilos de layout e dos componentes de UI. Cores/tipografia/espaçamentos
+   vêm sempre de custom properties definidas em src/styles/tokens.css. */
+
+.app-raiz {
+  min-height: 100vh;
+  min-height: 100dvh; /* Android: exclui barras de sistema */
+  width: 100%;
+  overflow: hidden;
+  background: var(--cor-sombra);
+  /* Impede scroll/zoom acidental em dispositivos móveis */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.app-area-jogo {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  /* Respeita a safe area (notch, barra de navegação do Android) */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  box-sizing: border-box;
+}
+
+/* ---------- GameCanvas ---------- */
+.game-canvas-wrapper {
+  position: absolute;
+  inset: 0;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Entrega todos os eventos de toque direto ao JS, sem interferência do browser */
+  touch-action: none;
+}
+
+.game-canvas-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-lg, 2rem);
+  background: var(--cor-sombra);
+  color: var(--cor-clara, #e8d5a9);
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  position: absolute;
+  top: var(--espaco-md);
+  right: var(--espaco-md);
+  display: flex;
+  gap: var(--espaco-md);
+  background: var(--cor-fundo-ui);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-sm) var(--espaco-md);
+  font-family: var(--fonte-hud);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.5rem;
+}
+
+.hud-rotulo {
+  font-size: var(--tamanho-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.hud-valor {
+  font-size: var(--tamanho-lg);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* ---------- Hud: inventário discreto de itens literários ---------- */
+.hud-inventario {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  padding-left: var(--espaco-sm);
+  border-left: 1px solid var(--cor-borda);
+}
+
+.hud-inventario-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--cor-texto);
+  opacity: 0.22;
+  filter: grayscale(1);
+  transition: opacity var(--duracao-normal) var(--easing-padrao), filter var(--duracao-normal) var(--easing-padrao),
+    transform var(--duracao-normal) var(--easing-padrao);
+}
+
+.hud-inventario-item[data-coletado="true"] {
+  opacity: 1;
+  filter: none;
+  color: var(--status-atencao);
+  transform: scale(1.12);
+}
+
+/* ---------- StatusBar (sede) ---------- */
+.status-bar {
+  position: absolute;
+  top: var(--espaco-md);
+  left: var(--espaco-md);
+  width: min(40vw, 260px);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  background: var(--cor-fundo-ui);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pill);
+  padding: var(--espaco-xs) var(--espaco-md);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.status-bar-icone {
+  color: var(--status-normal);
+  flex-shrink: 0;
+  transition: color var(--duracao-normal) var(--easing-padrao);
+}
+
+.status-bar[data-estado="atencao"] .status-bar-icone {
+  color: var(--status-atencao);
+}
+
+.status-bar[data-estado="critico"] .status-bar-icone {
+  color: var(--status-critico);
+}
+
+.status-bar-rotulo {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* A urgência nunca depende só de cor: o texto do estado (Normal/Atenção/
+   Crítico) acompanha sempre, para daltônicos e leitores de tela. */
+.status-bar-rotulo-estado {
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.status-bar-trilho {
+  flex: 1;
+  height: 10px;
+  border-radius: var(--raio-pill);
+  background: rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.status-bar-preenchimento {
+  height: 100%;
+  border-radius: var(--raio-pill);
+  background: var(--status-normal);
+  transition: width var(--duracao-normal) var(--easing-padrao), background-color var(--duracao-normal) var(--easing-padrao);
+}
+
+.status-bar[data-estado="atencao"] .status-bar-preenchimento {
+  background: var(--status-atencao);
+}
+
+.status-bar[data-estado="critico"] .status-bar-preenchimento {
+  background: var(--status-critico);
+}
+
+/* Pulsação da barra em estado crítico — a INTENSIDADE (não o liga/desliga)
+   escala continuamente com --intensidade-urgencia (0..1, ver StatusBar.jsx),
+   nunca "surge" de repente ao cruzar o limiar. */
+.status-bar[data-estado="critico"] {
+  animation: status-bar-pulsar 1.2s var(--easing-padrao) infinite;
+  animation-duration: calc(1.6s - var(--intensidade-urgencia, 0) * 0.7s);
+}
+
+@keyframes status-bar-pulsar {
+  0%,
+  100% {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow: 0 2px calc(10px + var(--intensidade-urgencia, 0) * 18px)
+      rgba(193, 56, 42, calc(0.25 + var(--intensidade-urgencia, 0) * 0.5));
+  }
+}
+
+/* prefers-reduced-motion: substitui a pulsação por um contorno estático de
+   intensidade equivalente — a urgência continua visível, só não anima. */
+@media (prefers-reduced-motion: reduce) {
+  .status-bar[data-estado="critico"] {
+    animation: none;
+    box-shadow: 0 0 0 calc(1px + var(--intensidade-urgencia, 0) * 3px) var(--status-critico);
+  }
+}
+
+/* ---------- HeatOverlay (vinheta de calor da sede crítica) ---------- */
+.heat-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(193, 56, 42, calc(var(--intensidade-calor, 0) * 0.55)) 100%
+  );
+  animation: heat-overlay-onda 2.4s ease-in-out infinite;
+  animation-duration: calc(3.2s - var(--intensidade-calor, 0) * 1.6s);
+}
+
+@keyframes heat-overlay-onda {
+  0%,
+  100% {
+    opacity: calc(0.7 + var(--intensidade-calor, 0) * 0.3);
+    backdrop-filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    backdrop-filter: blur(calc(var(--intensidade-calor, 0) * 0.6px));
+  }
+}
+
+/* Reduced motion: vinheta estática de intensidade equivalente, sem onda. */
+@media (prefers-reduced-motion: reduce) {
+  .heat-overlay {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.heat-overlay[data-reduzir-movimento="true"] {
+  animation: none;
+  opacity: 1;
+}
+
+/* ---------- VersoOverlay (verso curto ao coletar item literário) ---------- */
+.verso-overlay {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+  animation: verso-overlay-desvanecer 3.6s var(--easing-padrao) forwards;
+}
+
+.verso-overlay-caixa {
+  background: var(--cor-fundo-ui);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-sm) var(--espaco-lg);
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  max-width: min(80vw, 420px);
+}
+
+.verso-overlay-nome {
+  display: block;
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin-bottom: var(--espaco-xs);
+}
+
+.verso-overlay-texto {
+  margin: 0;
+  font-family: var(--fonte-serif);
+  font-style: italic;
+  font-size: var(--tamanho-sm);
+  line-height: 1.5;
+}
+
+.verso-overlay-linha {
+  display: block;
+}
+
+@keyframes verso-overlay-desvanecer {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verso-overlay {
+    animation: verso-overlay-estatico 3.6s linear forwards;
+  }
+  @keyframes verso-overlay-estatico {
+    0%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/* ---------- TitleScreen ---------- */
+.title-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--sertao-sky), var(--sertao-terra-clara) 70%);
+  padding: var(--espaco-lg);
+}
+
+.title-screen-conteudo {
+  max-width: 640px;
+  text-align: center;
+  color: var(--cor-texto);
+}
+
+.title-screen-titulo {
+  font-family: var(--fonte-serif);
+  font-size: var(--tamanho-titulo);
+  margin: 0 0 var(--espaco-lg);
+  color: var(--sertao-sombra);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.title-screen-verso {
+  font-family: var(--fonte-serif);
+  font-style: italic;
+  font-size: var(--tamanho-md);
+  line-height: 1.6;
+  margin: 0 0 var(--espaco-xl);
+  color: var(--sertao-sombra);
+}
+
+.title-screen-verso footer {
+  margin-top: var(--espaco-sm);
+  font-style: normal;
+  font-size: var(--tamanho-sm);
+  opacity: 0.75;
+}
+
+.title-screen-botao {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-md);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto-claro);
+  background: var(--sertao-terra-escura);
+  border: none;
+  border-radius: var(--raio-pill);
+  padding: var(--espaco-md) var(--espaco-xl);
+  transition: transform var(--duracao-rapida) var(--easing-padrao), background-color var(--duracao-rapida) var(--easing-padrao);
+}
+
+.title-screen-botao:hover {
+  background: var(--sertao-sombra);
+  transform: translateY(-2px);
+}
+
+.title-screen-botao:active {
+  transform: translateY(0);
+}
+
+.title-screen-instrucoes {
+  margin-top: var(--espaco-lg);
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-sm);
+  opacity: 0.8;
+}
+
+/* ---------- TitleScreen: campo de nome do jogador ---------- */
+.title-screen-form-nome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-sm);
+  margin-bottom: var(--espaco-lg);
+}
+
+.title-screen-rotulo-nome {
+  font-family: var(--fonte-serif);
+  font-style: italic;
+  font-size: var(--tamanho-md);
+  color: var(--sertao-sombra);
+}
+
+.title-screen-input-nome {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-md);
+  text-align: center;
+  padding: var(--espaco-sm) var(--espaco-md);
+  min-width: 16rem;
+  max-width: 90vw;
+  border: 2px solid var(--sertao-sombra);
+  border-radius: var(--raio-md);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--sertao-sombra);
+}
+
+.title-screen-input-nome:focus-visible {
+  outline: 3px solid var(--sertao-terra-escura);
+  outline-offset: 2px;
+}
+
+.title-screen-erro-nome {
+  margin: 0;
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-sm);
+  color: #7a1f1f;
+  font-weight: 600;
+}
+
+.title-screen-botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.title-screen-botao:disabled:hover {
+  background: var(--sertao-terra-escura);
+  transform: none;
+}
+
+/* ---------- Hud: nome do jogador (discreto) ---------- */
+.hud-nome {
+  font-family: var(--fonte-serif);
+  font-style: italic;
+  font-size: var(--tamanho-sm);
+  opacity: 0.85;
+  align-self: center;
+  padding-right: var(--espaco-sm);
+  border-right: 1px solid var(--cor-borda);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 9rem;
+}
+
+/* ---------- GameOverModal ---------- */
+.modal-fundo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10;
+}
+
+.modal-caixa {
+  max-width: 560px;
+  width: min(90vw, 560px);
+  background: var(--cor-fundo-ui);
+  border-radius: var(--raio-lg);
+  padding: var(--espaco-xl);
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  animation: modal-entrada var(--duracao-lenta) var(--easing-entrada);
+}
+
+@keyframes modal-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-caixa[data-variant="death"] {
+  border-top: 6px solid var(--sertao-sombra);
+}
+
+/* A vitória é o clímax emocional: paleta do litoral, respiro, silêncio
+   visual — a caixa "respira" (leve pulsação lentíssima) em vez de só
+   aparecer, e o fundo ganha um tom mais claro e aberto. */
+.modal-caixa[data-variant="victory"] {
+  border-top: 6px solid var(--litoral-agua-escura);
+  background: linear-gradient(180deg, var(--cor-fundo-ui), var(--litoral-agua-clara) 220%);
+  animation: modal-entrada var(--duracao-lenta) var(--easing-entrada), modal-respiro 5s ease-in-out 1s infinite;
+}
+
+@keyframes modal-respiro {
+  0%, 100% {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 10px 55px rgba(79, 163, 165, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-caixa {
+    animation: none;
+  }
+}
+
+/* ---------- Resumo da jornada (GameOverModal) ---------- */
+.modal-resumo {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--espaco-md);
+  margin: 0 0 var(--espaco-lg);
+  padding: var(--espaco-sm) 0;
+  border-top: 1px solid var(--cor-borda);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.modal-resumo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.modal-resumo-valor {
+  font-family: var(--fonte-serif);
+  font-size: var(--tamanho-lg);
+  font-weight: 600;
+}
+
+.modal-resumo-rotulo {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.modal-itens-verso-ausente {
+  opacity: 0.5;
+  font-style: normal;
+}
+
+.modal-titulo {
+  font-family: var(--fonte-serif);
+  font-size: var(--tamanho-xl);
+  margin: 0 0 var(--espaco-lg);
+  color: var(--cor-texto);
+}
+
+.modal-verso {
+  font-family: var(--fonte-serif);
+  font-style: italic;
+  font-size: var(--tamanho-md);
+  line-height: 1.6;
+  margin: 0 0 var(--espaco-lg);
+}
+
+.modal-verso footer {
+  margin-top: var(--espaco-sm);
+  font-style: normal;
+  font-size: var(--tamanho-sm);
+  opacity: 0.7;
+}
+
+.modal-itens-encontrados {
+  margin: 0 0 var(--espaco-lg);
+  text-align: left;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-sm) var(--espaco-md);
+}
+
+.modal-itens-titulo {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  margin: 0 0 var(--espaco-xs);
+}
+
+.modal-itens-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs);
+}
+
+.modal-itens-item {
+  font-family: var(--fonte-serif);
+  font-size: var(--tamanho-sm);
+}
+
+.modal-itens-verso {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.modal-botao {
+  font-family: var(--fonte-hud);
+  font-size: var(--tamanho-md);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cor-texto-claro);
+  background: var(--cor-terra-escura);
+  border: none;
+  border-radius: var(--raio-pill);
+  padding: var(--espaco-md) var(--espaco-xl);
+  transition: transform var(--duracao-rapida) var(--easing-padrao), background-color var(--duracao-rapida) var(--easing-padrao);
+}
+
+.modal-botao:hover {
+  transform: translateY(-2px);
+}
+
+.modal-botao:active {
+  transform: translateY(0);
+}
+
+/* ---------- Foco visível por teclado em toda a UI ---------- */
+.title-screen-botao:focus-visible,
+.modal-botao:focus-visible {
+  outline: 3px solid var(--status-atencao);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   BotoesToque — overlay de controle mobile
+   Fica sobre o canvas mas abaixo do HUD (z-index 5).
+   Completamente transparente a eventos de ponteiro para não bloquear o
+   canvas, exceto os ícones que são puramente decorativos (pointer-events:none).
+   ========================================================================== */
+.btoque-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row;
+  pointer-events: none; /* canvas captura os toques — overlay só é visual */
+  z-index: 5;
+}
+
+.btoque-centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Zona genérica */
+.btoque-zona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--raio-md);
+  margin: var(--espaco-xs);
+  background: rgba(255, 255, 255, 0.04);
+  /* Feedback visual ao toque (active) — requer pointer-events nas zonas */
+  pointer-events: none;
+  transition: background var(--duracao-rapida) var(--easing-padrao);
+}
+
+/* Ícone de cada botão */
+.btoque-icone {
+  font-size: 1.8rem;
+  color: rgba(255, 255, 255, 0.30);
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  /* Sem seleção de texto ao tocar */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Colunas laterais ocupam 33% cada — espelha a lógica de zona do GameCanvas */
+.btoque-esquerda,
+.btoque-direita {
+  flex: 0 0 33.333%;
+}
+
+/* Centro divide cima/baixo em 50/50 */
+.btoque-pular,
+.btoque-agachar {
+  flex: 1;
+}
+
+/* Em telas muito pequenas (< 360px) reduz ícones para não poluir */
+@media (max-width: 360px) {
+  .btoque-icone {
+    font-size: 1.3rem;
+  }
+}
+
+/* Oculta os botões de toque em dispositivos sem tela sensível ao toque
+   (ex: emulador com mouse apenas, desktop) para não poluir a UI */
+@media (hover: hover) and (pointer: fine) {
+  .btoque-overlay {
+    display: none;
+  }
+}
